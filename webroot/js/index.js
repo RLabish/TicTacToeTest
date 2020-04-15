@@ -58,7 +58,32 @@ function removeGame(id) {
     });
 }
 
+function initTable() {
+
+    var table = $("table tbody");
+    $.ajax({
+        url: '/api/v1/games',
+        method: "GET",
+        xhrFields: {
+            withCredentials: true
+        },
+        success: function (data) {
+            table.empty();
+            $.each(data.result.games, function (a, b) {
+                table.append("<tr id='row" + b.id + "'><td>" + b.id + "</td>" +
+                    "<td>" + b.status + "</td>" +
+                    "<td><button class='view' data-id='" + b.id + "'>View</button><button class='delete' data-id='" + b.id + "'>Delete</button></td></tr>");
+            });
+
+            $("#example").DataTable({
+                deleteUrl: '/admin/news/news/delete/',
+            });
+        }
+    });
+}
+
 (function main() {
+    initTable();
     if (window.location.hash.length > 0) {
         $.get('/api/v1/games/' + window.location.hash.replace('#', '')).done(function (data) {
             _board = data.result.game.board
@@ -88,27 +113,6 @@ function removeGame(id) {
         return false;
     });
 
-    var table = $("table tbody");
-    $.ajax({
-        url: '/api/v1/games',
-        method: "GET",
-        xhrFields: {
-            withCredentials: true
-        },
-        success: function (data) {
-            console.log(data);
-            table.empty();
-            $.each(data.result.games, function (a, b) {
-                table.append("<tr id='row" + b.id + "'><td>" + b.id + "</td>" +
-                    "<td>" + b.status + "</td>" +
-                    "<td><button class='view' data-id='" + b.id + "'>View</button><button class='delete' data-id='" + b.id + "'>Delete</button></td></tr>");
-            });
-
-            $("#example").DataTable({
-                deleteUrl: '/admin/news/news/delete/',
-            });
-        }
-    });
 
     $('.field').on('click', '.click', function (e) {
         let array = _board.split('');
@@ -129,8 +133,10 @@ function removeGame(id) {
                     generateRows(ROWS_COUNT, COLS_COUNT);
                 } else {
                     clearBoard();
+                    initTable();
                     alert(data.result.game.status);
                     window.location.hash = ''
+
                 }
             },
             error: function (xhr, textStatus, errorThrown) {
